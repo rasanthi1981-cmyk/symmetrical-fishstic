@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Simulator</title>
+<style>
+    :root {
+        --primary: #4e73df;
+        --primary-dark: #2e59d9;
+        --success: #1cc88a;
+        --danger: #e74a3b;
+        --bg: #f0f2f5;
+        --text: #1f1f1f;
+        --card-bg: #ffffff;
+    }
+
+    [data-theme="dark"] {
+        --bg: #181a1b;
+        --text: #f5f5f5;
+        --card-bg: #222526;
+        --primary: #6c8ff7;
+        --primary-dark: #5477e6;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        transition: background 0.3s, color 0.3s;
+    }
+
+    header {
+        width: 100%;
+        padding: 1.5rem;
+        background: var(--primary);
+        color: white;
+        text-align: center;
+        font-size: 2rem;
+        font-weight: bold;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    main {
+        width: 90%;
+        max-width: 1200px;
+        margin-top: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        padding-bottom: 2rem;
+    }
+
+    .section {
+        background: var(--card-bg);
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        transition: background 0.3s;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .tab {
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        background: #e4e6f1;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.3s, color 0.3s;
+        user-select: none;
+    }
+
+    [data-theme="dark"] .tab {
+        background: #333;
+    }
+
+    .tab.active {
+        background: var(--primary);
+        color: white;
+    }
+
+    textarea {
+        width: 100%;
+        height: 220px;
+        padding: 1rem;
+        font-family: 'Courier New', monospace;
+        font-size: 1rem;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        resize: vertical;
+        transition: border-color 0.3s, background 0.3s, color 0.3s;
+        background: var(--bg);
+        color: var(--text);
+    }
+
+    textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    button {
+        padding: 0.6rem 1.2rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.3s, transform 0.2s;
+    }
+
+    button:hover {
+        transform: scale(1.05);
+    }
+
+    .run-btn { background: var(--primary); color: white; }
+    .run-btn:hover { background: var(--primary-dark); }
+
+    .copy-btn { background: var(--success); color: white; }
+    .copy-btn:hover { background: #17a673; }
+
+    .clear-btn { background: var(--danger); color: white; }
+    .clear-btn:hover { background: #c5302b; }
+
+    .theme-btn {
+        background: #888;
+        color: white;
+    }
+
+    .download-btn {
+        background: #f6c23e;
+        color: black;
+    }
+    .download-btn:hover {
+        background: #dda20a;
+    }
+
+    iframe {
+        width: 100%;
+        height: 400px;
+        border-radius: 12px;
+        border: 1px solid #ccc;
+        resize: vertical;
+        background: white;
+    }
+
+    @media (max-width: 768px) {
+        iframe { height: 300px; }
+    }
+</style>
+</head>
+<body>
+
+<header>HTML Simulator</header>
+
+<main>
+    <div class="section">
+        <div class="tabs">
+            <div class="tab active" data-tab="html">HTML</div>
+            <div class="tab" data-tab="css">CSS</div>
+            <div class="tab" data-tab="js">JS</div>
+        </div>
+
+        <textarea id="html" placeholder="Write your HTML code here..."></textarea>
+        <textarea id="css" placeholder="Write your CSS code here..." style="display:none;"></textarea>
+        <textarea id="js" placeholder="Write your JS code here..." style="display:none;"></textarea>
+
+        <div class="buttons">
+            <button class="run-btn" onclick="runCode()">Run ▶</button>
+            <button class="copy-btn" onclick="copyCode()">Copy 📋</button>
+            <button class="download-btn" onclick="downloadCode()">Download 💾</button>
+            <button class="clear-btn" onclick="clearCode()">Clear 🗑</button>
+            <button class="theme-btn" onclick="toggleTheme()">🌓 Theme</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Output:</h2>
+        <iframe id="outputFrame"></iframe>
+    </div>
+</main>
+
+<script>
+    // Tab switching
+    const tabs = document.querySelectorAll('.tab');
+    let activeTab = 'html';
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.getElementById(activeTab).style.display = 'none';
+            tabs.forEach(t => t.classList.remove('active'));
+            activeTab = tab.dataset.tab;
+            document.getElementById(activeTab).style.display = 'block';
+            tab.classList.add('active');
+        });
+    });
+
+    // Run code
+    function runCode() {
+        const html = document.getElementById('html').value;
+        const css = document.getElementById('css').value;
+        const js = document.getElementById('js').value;
+        const outputFrame = document.getElementById('outputFrame');
+        const fullCode = `
+            <html>
+                <head><style>${css}</style></head>
+                <body>${html}<script>${js}<\/script></body>
+            </html>
+        `;
+        outputFrame.srcdoc = fullCode;
+        localStorage.setItem('htmlCode', html);
+        localStorage.setItem('cssCode', css);
+        localStorage.setItem('jsCode', js);
+    }
+
+    // Copy all code
+    function copyCode() {
+        const code = `HTML:\n${document.getElementById('html').value}\n\nCSS:\n${document.getElementById('css').value}\n\nJS:\n${document.getElementById('js').value}`;
+        navigator.clipboard.writeText(code).then(() => alert('✅ Code copied to clipboard!'));
+    }
+
+    // Download code
+    function downloadCode() {
+        const html = document.getElementById('html').value;
+        const css = document.getElementById('css').value;
+        const js = document.getElementById('js').value;
+
+        const combined = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>My HTML Project</title>
+<style>${css}</style>
+</head>
+<body>
+${html}
+<script>${js}<\/script>
+</body>
+</html>`;
+
+        const blob = new Blob([combined], { type: "text/html" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "my_project.html";
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    // Clear all
+    function clearCode() {
+        if (confirm('Are you sure you want to clear all code?')) {
+            ['html', 'css', 'js'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('outputFrame').srcdoc = '';
+            localStorage.clear();
+        }
+    }
+
+    // Autosave (load previous)
+    window.onload = () => {
+        if (localStorage.getItem('htmlCode')) document.getElementById('html').value = localStorage.getItem('htmlCode');
+        if (localStorage.getItem('cssCode')) document.getElementById('css').value = localStorage.getItem('cssCode');
+        if (localStorage.getItem('jsCode')) document.getElementById('js').value = localStorage.getItem('jsCode');
+    };
+
+    // Theme toggle
+    function toggleTheme() {
+        const current = document.body.getAttribute('data-theme');
+        if (current === 'dark') {
+            document.body.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'light');
+        } else {
+            document.body.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+        }
+    }
+
+    // Load theme on start
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.setAttribute('data-theme', 'dark');
+    }
+</script>
+
+</body>
+</html>
